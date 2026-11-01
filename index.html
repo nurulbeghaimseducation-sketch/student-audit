@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Audit">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Student Mock Attendance Audit Nurul@aimseducation </title>
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f3f6f8;--sf:#fff;--tx:#1b2733;--mu:#5d6b78;--ln:#d8dee4;--ac:#0b6e8a;--ok:#2a8f5f;--no:#c4433a;--ch:#d9962b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -62,7 +63,8 @@ button{min-height:36px}
 #login{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
 #login[hidden]{display:none}
 #login .card{width:100%;max-width:360px;margin:0}
-.nodel [data-d],.nodel [data-l],.nodel #rst{display:none}
+.nodel [data-perm],.nodel #rst{display:none}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.cal i{font-style:normal;min-height:70px;border:1px solid var(--ln);border-radius:6px;padding:3px;font-size:12px;cursor:pointer;overflow:hidden;background:var(--sf)}.cal i.h{min-height:0;border:0;text-align:center;font-weight:600;cursor:default;background:none}.cal i.td{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac)}.cal b{display:block;font-weight:600}.ce{display:block;color:#fff;border-radius:4px;padding:1px 4px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}.calh{display:flex;gap:10px;align-items:center;margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -106,6 +108,23 @@ button{min-height:36px}
 <div class="bar" style="margin:12px 0 0"><button class="p" id="saveL">Add entry</button><span class="note" id="msg"></span></div>
 </div>
 
+<div class="card noexp" id="schCard"><h2>Next mock schedule</h2>
+<div class="g">
+<div><label for="schS">Student</label><select id="schS"></select></div>
+<div><label for="schD">Next mock date</label><input id="schD" type="date"></div>
+<div><label for="schT">Time</label><input id="schT" type="time"></div>
+<div><label for="schY">Mock type</label><select id="schY"><option>Pre-CAS mock</option><option>UKVI mock</option><option>Other</option></select></div>
+<div><label for="schM">Mode</label><select id="schM"><option>Online</option><option>In person</option></select></div>
+<div><label for="schO">Interviewer / officer</label><input id="schO" placeholder="Defaults to current officer"></div>
+<div><label for="schU">Status</label><select id="schU"><option value="s">Scheduled</option><option value="f">Confirmed with student</option><option value="r">Rescheduled</option><option value="d">Completed</option><option value="m">Missed (did not attend)</option><option value="x">Cancelled</option></select></div>
+<div><label for="schN">Note / reason</label><input id="schN"></div>
+</div>
+<div class="bar" style="margin:12px 0 0"><button class="p" id="schSave">Save next mock</button><button id="schClr">Clear</button><button id="schXl">Download schedule (Excel)</button><span class="note" id="schMsg"></span></div>
+<div class="bar" id="schTabs" style="margin-top:14px"></div>
+<div class="tw"><table><thead><tr><th>Student</th><th>CRM</th><th>Officer</th><th>Next mock</th><th>Type / mode</th><th>Note</th><th></th></tr></thead><tbody id="schB"></tbody></table></div>
+<div class="empty" id="schE" hidden>Nothing in this list.</div>
+<details style="margin-top:12px"><summary>Month calendar</summary><div id="schCal" style="margin-top:8px"></div></details>
+</div>
 <div class="card noexp"><h2>Backup, restore and import</h2>
 <div class="bar"><button class="p" id="bk">Download backup (Excel)</button><button id="tpl">Download student import template</button></div>
 <div class="g wr" style="margin-top:10px"><div><label for="imf">Import students from Excel or CSV</label><input id="imf" type="file" accept=".xlsx,.xls,.csv"></div><div><label for="rsf">Restore from a backup file</label><input id="rsf" type="file" accept=".xlsx"></div></div>
@@ -117,6 +136,8 @@ button{min-height:36px}
 <div><label for="fo">Current compliance officer</label><select id="fo"></select></div>
 <div><label for="fc">Counsellor</label><select id="fc"></select></div>
 <div><label for="fm">Month</label><select id="fm"></select></div>
+<div><label for="fq">Search</label><input id="fq" placeholder="Name, CRM, university..."></div>
+<div><label for="fn">Next mock</label><select id="fn"><option value="">All</option><option value="over">Overdue</option><option value="today">Today</option><option value="week">Next 7 days</option><option value="later">Later</option><option value="none">Not scheduled</option><option value="done">Completed</option></select></div>
 </div>
 <div class="bar" style="margin:12px 0 0">
 <button class="p" id="expP">Student report (PDF)</button><button id="expJ">Student report (JPEG)</button>
@@ -136,9 +157,10 @@ button{min-height:36px}
 </div>
 <div class="card" style="margin-top:14px"><h2>Student-wise report</h2><div class="note" id="swn"></div><div class="ch" id="sw" style="margin-top:10px"></div></div>
 <div class="card" style="margin-top:14px"><h2>Student register</h2>
-<div class="tw"><table><thead><tr><th>Student</th><th>CRM</th><th>Counsellor</th><th>Compliance officer</th><th>University / course</th><th>Prep</th><th>Pre-CAS</th><th>UKVI</th><th>Visa</th><th>Attended</th><th>Not attended</th><th>Chased</th><th>Rate</th><th class="noexp"></th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Student</th><th>CRM</th><th>Counsellor</th><th>Compliance officer</th><th>University / course</th><th>Prep</th><th>Pre-CAS</th><th>UKVI</th><th>Visa</th><th>Next mock</th><th>Attended</th><th>Not attended</th><th>Chased</th><th>Rate</th><th class="noexp"></th></tr></thead><tbody id="tb"></tbody></table></div>
 <div class="empty" id="em" hidden>No students match. Add a student above.</div>
 </div>
+<div class="card noexp" id="binCard"><h2>Recycle bin <span class="note" id="binC"></span></h2><p class="note">Deleted students and entries stay here so they can be restored. Only an administrator can delete permanently.</p><div class="tw"><table><thead><tr><th>Type</th><th>Item</th><th>Deleted by / when</th><th>Reason</th><th></th></tr></thead><tbody id="binB"></tbody></table></div><div class="empty" id="binE" hidden>The Recycle bin is empty.</div></div>
 <div class="card" id="audCard"><h2 id="audT">Recent activity</h2><div class="tw"><table><thead><tr><th>When</th><th>Who</th><th>Student</th><th>Action</th></tr></thead><tbody id="ab"></tbody></table></div><div class="empty" id="ae" hidden>No activity recorded yet.</div></div>
 <div class="card" id="logCard" hidden><h2>Session history</h2><div class="tw"><table><thead><tr><th>Date</th><th>Status</th><th>Method</th><th>Student reply</th><th>Next follow-up</th><th>Note</th><th>Logged by</th><th class="noexp"></th></tr></thead><tbody id="lb"></tbody></table></div></div>
 </div>
@@ -223,17 +245,17 @@ const ml=ym=>new Date(ym+'-01T00:00:00').toLocaleString('en',{month:'short',year
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function opts(el,vals,all,keep){const cur=keep??el.value;el.innerHTML=(all?`<option value="">${all}</option>`:'')+vals.map(v=>`<option value="${esc(v[0])}">${esc(v[1])}</option>`).join('');if([...el.options].some(o=>o.value===cur))el.value=cur}
 function filters(){
- opts($('fs'),S.students.map(s=>[s.id,s.name+' ('+s.crm+')']),'All students');
- opts($('fo'),[...new Set(S.students.map(s=>s.cc).filter(Boolean))].map(v=>[v,v]),'All officers');
- opts($('fc'),[...new Set(S.students.map(s=>s.cn).filter(Boolean))].map(v=>[v,v]),'All counsellors');
- opts($('fm'),[...new Set(S.logs.map(l=>l.d.slice(0,7)))].sort().map(v=>[v,ml(v)]),'All months');
- opts($('ls'),S.students.map(s=>[s.id,s.name+' ('+s.crm+')']),'');
+ opts($('fs'),LIVE().map(s=>[s.id,s.name+' ('+s.crm+')']),'All students');
+ opts($('fo'),[...new Set(LIVE().map(s=>s.cc).filter(Boolean))].map(v=>[v,v]),'All officers');
+ opts($('fc'),[...new Set(LIVE().map(s=>s.cn).filter(Boolean))].map(v=>[v,v]),'All counsellors');
+ opts($('fm'),[...new Set(LG().map(l=>l.d.slice(0,7)))].sort().map(v=>[v,ml(v)]),'All months');
+ opts($('ls'),LIVE().map(s=>[s.id,s.name+' ('+s.crm+')']),'');
 }
 function view(){
- const f={s:$('fs').value,o:$('fo').value,c:$('fc').value,m:$('fm').value};
- const st=S.students.filter(s=>(!f.s||s.id===f.s)&&(!f.o||s.cc===f.o)&&(!f.c||s.cn===f.c));
+ const f={s:$('fs').value,o:$('fo').value,c:$('fc').value,m:$('fm').value,q:$('fq').value.trim().toLowerCase(),n:$('fn').value};
+ const st=LIVE().filter(s=>(!f.s||s.id===f.s)&&(!f.o||s.cc===f.o)&&(!f.c||s.cn===f.c)&&(!f.q||[s.name,s.crm,s.un,s.co,s.cn,s.cc].join(' ').toLowerCase().includes(f.q))&&(!f.n||nmCat(s)===f.n));
  const ids=new Set(st.map(s=>s.id));
- const lg=S.logs.filter(l=>ids.has(l.sid)&&(!f.m||l.d.slice(0,7)===f.m));
+ const lg=LG().filter(l=>ids.has(l.sid)&&(!f.m||l.d.slice(0,7)===f.m));
  return{f,st,lg};
 }
 function stat(sid,lg){const r={a:0,n:0,c:0};lg.filter(l=>l.sid===sid).forEach(l=>r[l.t]++);r.rate=r.a+r.n?Math.round(100*r.a/(r.a+r.n)):null;return r}
@@ -244,7 +266,7 @@ function vb(v){const c=VL[v||'x'];return`<span class="pill" style="background:va
 function vclr(s){const v=s.visa||'x',m=s.visaAt?`<div class="note">${VL[v][0]} on ${s.visaAt} by ${esc(s.visaBy)}${s.visaNote?' · '+esc(s.visaNote):''}</div>`:'';return`<div class="cl"><label>Visa status</label>${vb(v)}${m}<span class="noexp"><input id="note_visa" placeholder="Reason or note" style="margin:4px 0;max-width:230px"><br>${['x','p','g','r'].map(x=>`<button data-k="visa" data-v="${x}" class="${v===x?'on':''}">${VL[x][0]}</button>`).join('')}</span></div>`}
 function bdg(v){const c=CL[v||'p'];return`<span class="pill" style="background:var(${c[1]})">${c[0]}</span>`}
 function clr(name,k,s){const v=s[k]||'p',m=s[k+'At']?`<div class="note">${CL[v][0]} on ${s[k+'At']} by ${esc(s[k+'By'])}${s[k+'Note']?' · '+esc(s[k+'Note']):''}</div>`:'';return`<div class="cl"><label>${name}</label>${bdg(v)}${m}<span class="noexp"><input id="note_${k}" placeholder="Reason or note" style="margin:4px 0;max-width:230px"><br>${['c','p','n'].map(x=>`<button data-k="${k}" data-v="${x}" class="${v===x?'on':''}">${CL[x][0]}</button>`).join('')}</span></div>`}
-function render(){
+function render0(){
  filters_keep();
  const{f,st,lg}=view(),C=COL();
  const tot={a:0,n:0,c:0};lg.forEach(l=>tot[l.t]++);
@@ -259,7 +281,7 @@ function render(){
  mk('c2',{type:'bar',data:{labels:['Attended','Not attended','Chased'],datasets:[{data:[tot.a,tot.n,tot.c],backgroundColor:[C.a,C.n,C.c]}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
  mk('c3',{type:'bar',data:{labels:st.map(s=>s.name),datasets:[{label:'Preparation %',data:st.map(s=>+s.pp||0),backgroundColor:st.map(s=>s.pp<50?C.n:s.pp<75?C.c:C.a)}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{min:0,max:100}}}});
  mk('c4',{type:'bar',data:{labels:st.map(s=>s.name),datasets:['a','n','c'].map(t=>({label:LBL[t],backgroundColor:C[t],data:st.map(s=>stat(s.id,lg)[t])}))},options:{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{precision:0}}}}});
- $('tb').innerHTML=st.map(s=>{const r=stat(s.id,lg),pc=s.pp<50?C.n:s.pp<75?C.c:C.a;return`<tr data-id="${s.id}" class="${f.s===s.id?'sel':''}"><td>${esc(s.name)} <button data-e="${s.id}" class="noexp" style="padding:1px 8px;min-height:0;font-size:12px">Edit</button></td><td>${esc(s.crm)}</td><td>${esc(s.cn)}</td><td>${esc(s.pc||'–')} → ${esc(s.cc||'–')}</td><td>${esc(s.un)} / ${esc(s.co)}</td><td><span class="pill" style="background:${pc}">${+s.pp||0}%</span></td><td>${bdg(s.pre)}</td><td>${bdg(s.uk)}</td><td>${vb(s.visa)}</td><td>${r.a}</td><td>${r.n}</td><td>${r.c}</td><td>${r.rate===null?'–':r.rate+'%'}</td><td class="noexp"><button data-e="${s.id}">Edit</button> <button class="x" data-d="${s.id}">Delete</button></td></tr>`}).join('');
+ $('tb').innerHTML=st.map(s=>{const r=stat(s.id,lg),pc=s.pp<50?C.n:s.pp<75?C.c:C.a;return`<tr data-id="${s.id}" class="${f.s===s.id?'sel':''}"><td>${esc(s.name)} <button data-e="${s.id}" class="noexp" style="padding:1px 8px;min-height:0;font-size:12px">Edit</button></td><td>${esc(s.crm)}</td><td>${esc(s.cn)}</td><td>${esc(s.pc||'–')} → ${esc(s.cc||'–')}</td><td>${esc(s.un)} / ${esc(s.co)}</td><td><span class="pill" style="background:${pc}">${+s.pp||0}%</span></td><td>${bdg(s.pre)}</td><td>${bdg(s.uk)}</td><td>${vb(s.visa)}</td><td>${nmCell(s)}</td><td>${r.a}</td><td>${r.n}</td><td>${r.c}</td><td>${r.rate===null?'–':r.rate+'%'}</td><td class="noexp"><button data-e="${s.id}">Edit</button> <button class="x" data-d="${s.id}">Delete</button></td></tr>`}).join('');
  $('em').hidden=st.length>0;
  const pr=$('prof'),nv={pre:($('note_pre')||{}).value||'',uk:($('note_uk')||{}).value||''};
  if(one){const r=stat(one.id,lg),pc=one.pp<50?C.n:one.pp<75?C.c:C.a,ready=one.pre==='c'&&one.uk==='c';
@@ -306,10 +328,10 @@ $('saveL').onclick=()=>{
 $('tb').onclick=e=>{
  const b=e.target.closest('button'),tr=e.target.closest('tr');
  if(b&&b.dataset.e){const s=S.students.find(x=>x.id===b.dataset.e);editId=s.id;$('n').value=s.name;$('crm').value=s.crm;$('cn').value=s.cn;$('pc').value=s.pc;$('cc').value=s.cc;$('pp').value=s.pp;$('un').value=s.un;$('co').value=s.co;$('pre').value=s.pre||'p';$('uk').value=s.uk||'p';$('vs').value=s.visa||'x';$('addS').open=true;$('addS').scrollIntoView({behavior:'smooth'});return}
- if(b&&b.dataset.d){if(!need())return;arm(b,()=>{const s=S.students.find(x=>x.id===b.dataset.d);if(s)logA(s,'Student deleted with all their entries');S.students=S.students.filter(x=>x.id!==b.dataset.d);S.logs=S.logs.filter(l=>l.sid!==b.dataset.d);save();$('fs').value='';render()});return}
+ if(b&&b.dataset.d){if(!need())return;arm(b,()=>softDel(b.dataset.d));return}
  if(tr&&tr.dataset.id){$('fs').value=$('fs').value===tr.dataset.id?'':tr.dataset.id;render();if($('fs').value)$('prof').scrollIntoView({behavior:'smooth'})}
 };
-$('lb').onclick=e=>{const b=e.target.closest('button');if(b&&b.dataset.l){if(!need())return;arm(b,()=>{const l=S.logs.find(x=>x.id===b.dataset.l),s=l&&S.students.find(x=>x.id===l.sid);if(s)logA(s,'Removed '+LBL[l.t]+' entry dated '+l.d);S.logs=S.logs.filter(x=>x.id!==b.dataset.l);save();render()})}};
+$('lb').onclick=e=>{const b=e.target.closest('button');if(b&&b.dataset.l){if(!need())return;arm(b,()=>{const l=S.logs.find(x=>x.id===b.dataset.l),s=l&&S.students.find(x=>x.id===l.sid);if(!l)return;if(s)logA(s,'Entry moved to Recycle bin: '+LBL[l.t]+' dated '+l.d);l.del=true;l.delBy=me();l.delAt=Date.now();save();render()})}};
 $('prof').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.edit){editStudent(b.dataset.edit);return}if(b.dataset.dl){out2(b.dataset.dl);return}if(b.dataset.back){$('fs').value='';render();return}const s=S.students.find(x=>x.id===$('fs').value);if(s&&b.dataset.k){if(!need())return;const k=b.dataset.k;setClr(s,k,b.dataset.v,($('note_'+k)||{}).value.trim());$('note_'+k).value='';save();render()}};
 $('rst').onclick=()=>{if(!need())return;arm($('rst'),()=>{const a=S.audit.concat([{id:uid(),at:Date.now(),by:me(),sid:'',sn:'All students',t:'All students and entries deleted'}]);S={students:[],logs:[],audit:a,seeded:true};save();render()})};
 async function snap(){
@@ -334,7 +356,7 @@ async function out(kind){
  }catch(e){if(e&&e.code==='declined')say('msg2','Download cancelled.');else say('msg2','Could not create the file: '+((e&&(e.message||e.code))||'unknown error'))}
 }
 function repHTML(s){
- const L=S.logs.filter(l=>l.sid===s.id).sort((a,b)=>b.d.localeCompare(a.d)),r=stat(s.id,S.logs),tot=r.a+r.n,pp=+s.pp||0,
+ const L=LG().filter(l=>l.sid===s.id).sort((a,b)=>b.d.localeCompare(a.d)),r=stat(s.id,LG()),tot=r.a+r.n,pp=+s.pp||0,
  pc=pp<50?'#c4433a':pp<75?'#d9962b':'#2a8f5f',pl=pp<50?'At risk':pp<75?'Needs more work':'On track',
  CLR={c:['Cleared','#2a8f5f'],n:['Not cleared','#c4433a'],p:['Pending','#d9962b']},
  pre=s.pre||'p',uk=s.uk||'p',ready=pre==='c'&&uk==='c',blocked=pre==='n'||uk==='n',
@@ -368,7 +390,7 @@ function repHTML(s){
 <div class='t'><span>Sessions missed</span><b style='color:${r.n?'#c4433a':'#1b2733'}'>${r.n}</b><span>Not attended</span></div>
 <div class='t'><span>Times chased</span><b>${r.c}</b><span>Reminders to attend</span></div>
 </div>
-<div class='sec'><h3>Clearance and visa record</h3><table><tr><th>Stage</th><th>Status</th><th>Date</th><th>Recorded by</th><th>Reason or note</th></tr>${cr('Pre-CAS','pre')}${cr('UKVI interview','uk')}<tr><td><b>Visa</b></td><td><span style='background:${{x:'#5d6b78',p:'#d9962b',g:'#2a8f5f',r:'#c4433a'}[s.visa||'x']};color:#fff;padding:3px 12px;border-radius:12px;font-size:13px;white-space:nowrap'>${VL[s.visa||'x'][0]}</span></td><td>${s.visaAt||'Not yet recorded'}</td><td>${esc(s.visaBy||'–')}</td><td>${esc(s.visaNote||'–')}</td></tr></table></div>
+${nmSec(s)}<div class='sec'><h3>Clearance and visa record</h3><table><tr><th>Stage</th><th>Status</th><th>Date</th><th>Recorded by</th><th>Reason or note</th></tr>${cr('Pre-CAS','pre')}${cr('UKVI interview','uk')}<tr><td><b>Visa</b></td><td><span style='background:${{x:'#5d6b78',p:'#d9962b',g:'#2a8f5f',r:'#c4433a'}[s.visa||'x']};color:#fff;padding:3px 12px;border-radius:12px;font-size:13px;white-space:nowrap'>${VL[s.visa||'x'][0]}</span></td><td>${s.visaAt||'Not yet recorded'}</td><td>${esc(s.visaBy||'–')}</td><td>${esc(s.visaNote||'–')}</td></tr></table></div>
 <div class='sec'><h3>Attendance by month</h3>${ms.length?"<canvas id='rp_c' width='700' height='210' style='width:700px;height:210px'></canvas>":"<p class='nt'>No mock sessions have been recorded yet.</p>"}</div>
 <div class='sec'><h3>Follow-up chases</h3>${chs.length?`<table><tr><th>Date</th><th>How</th><th>Student reply</th><th>Next follow-up</th></tr>${chs.map(l=>`<tr><td>${l.d}</td><td>${esc(l.m||'–')}</td><td>${esc(l.r||'–')}</td><td>${l.nx||'–'}</td></tr>`).join('')}</table>`:"<p class='nt'>No chases have been recorded.</p>"}</div>
 <div class='sec'><h3>Recent sessions</h3>${rec.length?`<table><tr><th>Date</th><th>Result</th><th>Note</th><th>Logged by</th></tr>${rec.map(l=>`<tr><td>${l.d}</td><td style='font-weight:600;color:${l.t==='a'?'#2a8f5f':l.t==='n'?'#c4433a':'#b27a12'}'>${LBL[l.t]}</td><td>${esc(l.note||'–')}</td><td>${esc(l.by||'–')}</td></tr>`).join('')}</table>`:"<p class='nt'>No sessions recorded.</p>"}</div>
@@ -377,7 +399,7 @@ function repHTML(s){
 async function snapReport(s){
  const el=$('rep');el.innerHTML=repHTML(s);
  const cv=$('rp_c'),sy=window.scrollY;let ch=null;
- if(cv){const ms=[...new Set(S.logs.filter(l=>l.sid===s.id).map(l=>l.d.slice(0,7)))].sort(),ct=(t,m)=>S.logs.filter(l=>l.sid===s.id&&l.d.slice(0,7)===m&&l.t===t).length;
+ if(cv){const ms=[...new Set(LG().filter(l=>l.sid===s.id).map(l=>l.d.slice(0,7)))].sort(),ct=(t,m)=>LG().filter(l=>l.sid===s.id&&l.d.slice(0,7)===m&&l.t===t).length;
   ch=new Chart(cv,{type:'bar',data:{labels:ms.map(ml),datasets:[['a','Attended','#2a8f5f'],['n','Not attended','#c4433a'],['c','Chased','#d9962b']].map(x=>({label:x[1],backgroundColor:x[2],data:ms.map(m=>ct(x[0],m))}))},options:{responsive:false,animation:false,plugins:{legend:{position:'bottom',labels:{color:'#1b2733'}}},scales:{x:{ticks:{color:'#1b2733'},grid:{color:'#e3e8ec'}},y:{beginAtZero:true,ticks:{precision:0,color:'#1b2733'},grid:{color:'#e3e8ec'}}}}})}
  el.querySelectorAll('.sec').forEach(e=>{const t=e.offsetTop,b=t+e.offsetHeight,pg=Math.floor(t/1123);if(Math.floor((b-1)/1123)>pg)e.style.marginTop=((pg+1)*1123-t+16)+'px'});
  try{window.scrollTo(0,0);const c=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',logging:false,scrollX:0,scrollY:0,windowWidth:794,onclone:d=>{const e=d.getElementById('rep');e.style.left='0';e.style.top='0'}});c._sc=2;return c}
@@ -429,8 +451,8 @@ async function sendWB(name,wb){try{const dl=await getDL();if(!dl){bkm('Downloads
  catch(e){bkm(e&&e.code==='declined'?'Download cancelled.':'Could not create the file: '+((e&&(e.message||e.code))||'unknown error'))}}
 $('bk').onclick=()=>{
  const CW={c:'Cleared',n:'Not cleared',p:'Pending'},SL={a:'Attended',n:'Not attended',c:'Chased'},byId=id=>S.students.find(s=>s.id===id)||{};
- const stu=S.students.map(s=>({id:s.id,name:s.name,crm:s.crm,counsellor:s.cn,current_officer:s.cc,previous_officer:s.pc,university:s.un,course:s.co,preparation:s.pp,pre_cas:CW[s.pre||'p'],pre_cas_date:s.preAt||'',pre_cas_by:s.preBy||'',pre_cas_note:s.preNote||'',ukvi:CW[s.uk||'p'],ukvi_date:s.ukAt||'',ukvi_by:s.ukBy||'',ukvi_note:s.ukNote||'',visa:VL[s.visa||'x'][0],visa_date:s.visaAt||'',visa_by:s.visaBy||'',visa_note:s.visaNote||'',officer_history:JSON.stringify(s.hist||[]),added_by:s.by||'',added_at:s.at||''}));
- const ses=S.logs.map(l=>({id:l.id,student_id:l.sid,student_crm:byId(l.sid).crm||'',student_name:byId(l.sid).name||'',date:l.d,status:SL[l.t],note:l.note||'',chase_method:l.m||'',student_reply:l.r||'',next_followup:l.nx||'',logged_by:l.by||'',logged_at:l.at||''}));
+ const stu=LIVE().map(s=>({id:s.id,name:s.name,crm:s.crm,counsellor:s.cn,current_officer:s.cc,previous_officer:s.pc,university:s.un,course:s.co,preparation:s.pp,pre_cas:CW[s.pre||'p'],pre_cas_date:s.preAt||'',pre_cas_by:s.preBy||'',pre_cas_note:s.preNote||'',ukvi:CW[s.uk||'p'],ukvi_date:s.ukAt||'',ukvi_by:s.ukBy||'',ukvi_note:s.ukNote||'',visa:VL[s.visa||'x'][0],visa_date:s.visaAt||'',visa_by:s.visaBy||'',visa_note:s.visaNote||'',officer_history:JSON.stringify(s.hist||[]),added_by:s.by||'',added_at:s.at||'',next_mock_date:s.nmD||'',next_mock_time:s.nmT||'',next_mock_type:s.nmY||'',next_mock_mode:s.nmM||'',next_mock_officer:s.nmO||'',next_mock_status:s.nmS?NMS[s.nmS][0]:'',next_mock_note:s.nmN||'',next_mock_history:JSON.stringify(s.nmH||[])}));
+ const ses=LG().map(l=>({id:l.id,student_id:l.sid,student_crm:byId(l.sid).crm||'',student_name:byId(l.sid).name||'',date:l.d,status:SL[l.t],note:l.note||'',chase_method:l.m||'',student_reply:l.r||'',next_followup:l.nx||'',logged_by:l.by||'',logged_at:l.at||''}));
  const aud=S.audit.map(a=>({id:a.id,time_ms:a.at,time:new Date(a.at).toISOString(),by:a.by,student_id:a.sid,student:a.sn,action:a.t}));
  const wb=XLSX.utils.book_new();
  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(stu),'Students');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ses),'Sessions');XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(aud),'Audit');
@@ -459,6 +481,73 @@ $('rsf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f||!
   S.audit.push({id:uid(),at:Date.now(),by:me(),sid:'',sn:'Restore',t:'Restored from backup file '+f.name+': '+r.a+' students added, '+r.u+' updated, '+la+' sessions added'});
   save();render();bkm('Restore finished: '+r.a+' students added, '+r.u+' updated, '+la+' sessions added, '+aa+' audit lines added'+(ls?', '+ls+' sessions skipped (no matching student)':'')+'.')}
  catch(err){bkm('Could not read that file: '+((err&&err.message)||err))}};
+
+/* ===== next mock, delete and recycle bin ===== */
+const NMS={s:['Scheduled','--ch'],f:['Confirmed','--ac'],d:['Completed','--ok'],r:['Rescheduled','--ch'],x:['Cancelled','--no'],m:['Missed','--no']};
+const LIVE=()=>S.students.filter(s=>!s.del),LG=()=>S.logs.filter(l=>!l.del);
+const dAdd=n=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
+const fmtD=d=>new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+function nmCat(s){const st=s.nmS,d=s.nmD;if(st==='d')return'done';if(!d||st==='x')return'none';if(st==='m')return'over';const t=today();return d<t?'over':d===t?'today':d<=dAdd(7)?'week':'later'}
+function nmCell(s){if(!s.nmD)return'<span class="note">Not scheduled</span>';const c=nmCat(s),p=s.nmS?`<span class="pill" style="background:var(${NMS[s.nmS][1]})">${NMS[s.nmS][0]}</span>`:'';return`${fmtD(s.nmD)}${s.nmT?' '+esc(s.nmT):''} ${p}${c==='over'&&s.nmS!=='m'?' <span class="pill" style="background:var(--no)">Overdue</span>':c==='today'?' <span class="pill" style="background:var(--ac)">Today</span>':''}`}
+function nmSec(s){const c={s:'#d9962b',f:'#0b6e8a',d:'#2a8f5f',r:'#d9962b',x:'#c4433a',m:'#c4433a'};if(!s.nmD)return"<div class='sec'><h3>Next mock</h3><p class='nt'>No mock is scheduled yet.</p></div>";const k=s.nmS||'s';return`<div class='sec'><h3>Next mock</h3><table><tr><th>Date and time</th><th>Type</th><th>Mode</th><th>Officer</th><th>Status</th><th>Note</th></tr><tr><td>${fmtD(s.nmD)}${s.nmT?' '+esc(s.nmT):''}</td><td>${esc(s.nmY||'–')}</td><td>${esc(s.nmM||'–')}</td><td>${esc(s.nmO||s.cc||'–')}</td><td><span style='background:${c[k]};color:#fff;padding:3px 12px;border-radius:12px;font-size:13px'>${NMS[k][0]}</span></td><td>${esc(s.nmN||'–')}</td></tr></table></div>`}
+function nmProf(s){const h=(s.nmH||[]).slice().reverse().slice(0,10);return`<div style="margin-top:12px"><label>Next mock</label> ${nmCell(s)}${s.nmD?`<div class="note">${esc(s.nmY||'')} · ${esc(s.nmM||'')} · ${esc(s.nmO||s.cc||'')}${s.nmN?' · '+esc(s.nmN):''}</div>`:''}<span class="noexp"><button data-nmedit="${s.id}">Set / change next mock</button></span>${h.length?`<details class="noexp"><summary>Mock schedule history (${(s.nmH||[]).length})</summary><div class="note">${h.map(x=>`${x.d?fmtD(x.d):'–'}${x.t?' '+esc(x.t):''} · ${NMS[x.s]?NMS[x.s][0]:''} · ${esc(x.by||'')} · ${new Date(x.at||0).toLocaleDateString('en-GB')}${x.n?' · '+esc(x.n):''}`).join('<br>')}</div></details>`:''}</div>`}
+function softDel(id){const s=S.students.find(x=>x.id===id);if(!s)return;const w=prompt('Reason for deleting '+s.name+' (optional). The student moves to the Recycle bin and can be restored.');if(w===null)return;s.del=true;s.delBy=me();s.delAt=Date.now();s.delWhy=w.trim();logA(s,'Student moved to Recycle bin'+(w.trim()?': '+w.trim():''));save();$('fs').value='';render()}
+function binRender(){const ds=S.students.filter(s=>s.del),dl=S.logs.filter(l=>l.del&&!(S.students.find(x=>x.id===l.sid)||{}).del),W=t=>new Date(t||0).toLocaleDateString('en-GB'),n=ds.length+dl.length;
+ $('binC').textContent=n?'('+n+')':'';
+ $('binB').innerHTML=ds.map(s=>`<tr><td>Student</td><td>${esc(s.name)} (${esc(s.crm)})</td><td>${esc(s.delBy||'')} · ${W(s.delAt)}</td><td>${esc(s.delWhy||'')}</td><td><button data-rs="s:${s.id}">Restore</button> <button class="x" data-perm="s:${s.id}">Delete permanently</button></td></tr>`).join('')+dl.map(l=>{const s=S.students.find(x=>x.id===l.sid)||{};return`<tr><td>Entry</td><td>${esc(s.name||'?')} · ${l.d} · ${LBL[l.t]}</td><td>${esc(l.delBy||'')} · ${W(l.delAt)}</td><td></td><td><button data-rs="l:${l.id}">Restore</button> <button class="x" data-perm="l:${l.id}">Delete permanently</button></td></tr>`}).join('');
+ $('binE').hidden=n>0}
+$('binB').onclick=e=>{const b=e.target.closest('button');if(!b||!need())return;
+ if(b.dataset.rs){const[k,id]=b.dataset.rs.split(':'),o=(k==='s'?S.students:S.logs).find(x=>x.id===id);if(!o)return;o.del=false;const s=k==='s'?o:S.students.find(x=>x.id===o.sid);if(s)logA(s,k==='s'?'Student restored from Recycle bin':'Entry restored from Recycle bin ('+o.d+')');save();render();return}
+ if(b.dataset.perm){const[k,id]=b.dataset.perm.split(':');arm(b,()=>{if(k==='s'){const s=S.students.find(x=>x.id===id);if(s)logA(s,'Student permanently deleted with all entries');S.students=S.students.filter(x=>x.id!==id);S.logs=S.logs.filter(l=>l.sid!==id)}else{S.logs=S.logs.filter(x=>x.id!==id)}save();render()})}};
+/* schedule */
+let schTab='over',calM=today().slice(0,7);
+const SCHT=[['over','Overdue'],['today','Today'],['week','Next 7 days'],['later','Later'],['none','Not scheduled'],['done','Completed']];
+function schBase(){const o=$('fo').value,c=$('fc').value,q=$('fq').value.trim().toLowerCase();return LIVE().filter(s=>(!o||s.cc===o)&&(!c||s.cn===c)&&(!q||[s.name,s.crm,s.un,s.co,s.cn,s.cc].join(' ').toLowerCase().includes(q)))}
+function schRender(){opts($('schS'),LIVE().map(s=>[s.id,s.name+' ('+s.crm+')']),'Choose student');const b=schBase(),cnt={};SCHT.forEach(t=>cnt[t[0]]=0);b.forEach(s=>cnt[nmCat(s)]++);
+ $('schTabs').innerHTML=SCHT.map(t=>`<button data-tab="${t[0]}" class="${schTab===t[0]?'on':''}">${t[1]} (${cnt[t[0]]})</button>`).join('');
+ const L=b.filter(s=>nmCat(s)===schTab).sort((x,y)=>schTab==='done'?String(y.nmD).localeCompare(String(x.nmD)):String(x.nmD||'9').localeCompare(String(y.nmD||'9'))||String(x.nmT||'').localeCompare(String(y.nmT||'')));
+ $('schB').innerHTML=L.map(s=>`<tr><td><a href="#" data-pick="${s.id}">${esc(s.name)}</a></td><td>${esc(s.crm)}</td><td>${esc(s.nmO||s.cc||'–')}</td><td>${nmCell(s)}</td><td>${esc(s.nmY||'–')} · ${esc(s.nmM||'–')}</td><td>${esc(s.nmN||'')}</td><td class="noexp">${s.nmD&&schTab!=='done'&&schTab!=='none'?`<button data-a="d" data-id="${s.id}">Attended</button> <button data-a="m" data-id="${s.id}">Missed</button> <button data-a="x" data-id="${s.id}">Cancel</button> `:''}<button data-a="e" data-id="${s.id}">${s.nmD?'Reschedule':'Set date'}</button></td></tr>`).join('');
+ $('schE').hidden=L.length>0;calRender()}
+function calRender(){const[y,m]=calM.split('-').map(Number),first=new Date(y,m-1,1),days=new Date(y,m,0).getDate(),off=(first.getDay()+6)%7,by={};
+ LIVE().forEach(s=>{if(s.nmD&&s.nmD.slice(0,7)===calM&&s.nmS!=='x')(by[s.nmD]=by[s.nmD]||[]).push(s)});
+ let h='<div class="calh"><button id="cprev">◀</button><b>'+first.toLocaleString('en',{month:'long',year:'numeric'})+'</b><button id="cnext">▶</button></div><div class="cal">'+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>'<i class="h">'+d+'</i>').join('');
+ for(let i=0;i<off;i++)h+='<i></i>';
+ for(let d=1;d<=days;d++){const ds=calM+'-'+String(d).padStart(2,'0'),L=by[ds]||[];h+=`<i class="${ds===today()?'td':''}" data-day="${ds}"><b>${d}</b>${L.slice(0,3).map(s=>`<span class="ce" style="background:var(${NMS[s.nmS||'s'][1]})" title="${esc(s.name)}">${esc(s.name.split(' ')[0])}${s.nmT?' '+esc(s.nmT):''}</span>`).join('')}${L.length>3?'<span class="note">+'+(L.length-3)+' more</span>':''}</i>`}
+ $('schCal').innerHTML=h+'</div>'}
+$('schCal').onclick=e=>{if(e.target.id==='cprev'||e.target.id==='cnext'){const[y,m]=calM.split('-').map(Number),d=new Date(y,m-1+(e.target.id==='cnext'?1:-1),1);calM=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');calRender();return}
+ const c=e.target.closest('[data-day]');if(c){$('schD').value=c.dataset.day;$('schCard').scrollIntoView({behavior:'smooth'})}};
+$('schTabs').onclick=e=>{const b=e.target.closest('button');if(b){schTab=b.dataset.tab;schRender()}};
+function schLoad(id,fresh,still){const s=S.students.find(x=>x.id===id);if(!s)return;$('schS').value=id;$('schD').value=fresh?'':s.nmD||'';$('schT').value=fresh?'':s.nmT||'';$('schY').value=s.nmY||'Pre-CAS mock';$('schM').value=s.nmM||'Online';$('schO').value=s.nmO||s.cc||'';$('schU').value=fresh?'s':s.nmS||'s';$('schN').value='';if(!still)$('schCard').scrollIntoView({behavior:'smooth'})}
+$('schS').onchange=()=>{if($('schS').value)schLoad($('schS').value,false,true)};
+$('schClr').onclick=()=>{['schD','schT','schO','schN'].forEach(i=>$(i).value='');$('schS').value='';$('schU').value='s'};
+$('schSave').onclick=()=>{if(!need())return;const s=S.students.find(x=>x.id===$('schS').value);if(!s){say('schMsg','Choose a student first.');return}
+ const d=$('schD').value,t=$('schT').value,u=$('schU').value,note=$('schN').value.trim();if(!d&&u!=='x'){say('schMsg','Choose the next mock date.');return}
+ let st=u;if(u==='s'&&d&&s.nmD&&d!==s.nmD&&['s','f','r'].includes(s.nmS))st='r';
+ const old=s.nmD?fmtD(s.nmD)+(s.nmT?' '+s.nmT:''):'';s.nmD=d||s.nmD;s.nmT=t;s.nmY=$('schY').value;s.nmM=$('schM').value;s.nmO=$('schO').value.trim();s.nmS=st;if(note)s.nmN=note;
+ s.nmH=(s.nmH||[]).concat([{d:s.nmD,t,s:st,by:me(),at:Date.now(),n:note}]);
+ logA(s,'Next mock '+NMS[st][0].toLowerCase()+': '+fmtD(s.nmD)+(t?' '+t:'')+' ('+s.nmY+', '+s.nmM+')'+(old&&st==='r'?', was '+old:'')+(note?': '+note:''));
+ save();render();say('schMsg','Saved.')};
+function schDone(s,code){const d=s.nmD||today(),t=code==='d'?'a':'n';s.nmS=code;s.nmH=(s.nmH||[]).concat([{d:s.nmD,t:s.nmT,s:code,by:me(),at:Date.now(),n:''}]);
+ if(!S.logs.some(l=>!l.del&&l.sid===s.id&&l.d===d&&l.t===t&&l.auto))S.logs.push({id:uid(),sid:s.id,d,t,note:(s.nmY||'Mock')+' (from schedule)',by:me(),at:Date.now(),auto:1});
+ logA(s,'Mock on '+fmtD(d)+' marked '+(code==='d'?'completed and attended':'missed'));save();render();
+ if(code==='d'){schLoad(s.id,true);say('schMsg','Marked attended. Set the next mock date below if needed.')}else{schLoad(s.id,true);say('schMsg','Marked missed. Choose a new date below to reschedule.')}}
+$('schB').onclick=e=>{const a=e.target.closest('a[data-pick]');if(a){e.preventDefault();$('fs').value=a.dataset.pick;render();$('prof').scrollIntoView({behavior:'smooth'});return}
+ const b=e.target.closest('button');if(!b||!b.dataset.a||!need())return;const s=S.students.find(x=>x.id===b.dataset.id);if(!s)return;
+ if(b.dataset.a==='e'){schLoad(s.id);return}
+ if(b.dataset.a==='x'){arm(b,()=>{s.nmS='x';s.nmH=(s.nmH||[]).concat([{d:s.nmD,t:s.nmT,s:'x',by:me(),at:Date.now(),n:''}]);logA(s,'Next mock on '+fmtD(s.nmD)+' cancelled');save();render()});return}
+ schDone(s,b.dataset.a)};
+$('prof').addEventListener('click',e=>{const b=e.target.closest('button[data-nmedit]');if(b)schLoad(b.dataset.nmedit)});
+$('schXl').onclick=()=>{const rows=schBase().filter(s=>s.nmD).sort((a,b)=>a.nmD.localeCompare(b.nmD)).map(s=>({student:s.name,crm:s.crm,counsellor:s.cn||'',officer:s.nmO||s.cc||'',date:s.nmD,time:s.nmT||'',type:s.nmY||'',mode:s.nmM||'',status:s.nmS?NMS[s.nmS][0]:'',note:s.nmN||'',list:(SCHT.find(t=>t[0]===nmCat(s))||[])[1]||''})),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Mock schedule');sendWB('mock-schedule-'+today()+'.xlsx',wb)};
+$('fn').onchange=render;$('fq').oninput=render;
+/* backup / restore of the new fields */
+Object.assign(SYN,{nmD:['nextmockdate'],nmT:['nextmocktime'],nmY:['nextmocktype'],nmM:['nextmockmode'],nmO:['nextmockofficer'],nmS:['nextmockstatus'],nmN:['nextmocknote'],nmH:['nextmockhistory']});
+const NMSR={};Object.keys(NMS).forEach(k=>NMSR[NMS[k][0].toLowerCase()]=k);
+const _rts=rowToStudent;rowToStudent=function(r){const o=_rts(r);if(!o)return o;const g=k=>pick(r,k);['nmT','nmY','nmM','nmO','nmN'].forEach(k=>{const v=String(g(k)).trim();if(v)o[k]=v});if(g('nmD')!=='')o.nmD=dstr(g('nmD'));const sv=String(g('nmS')).trim().toLowerCase();if(sv&&NMSR[sv])o.nmS=NMSR[sv];try{const h=JSON.parse(g('nmH'));if(Array.isArray(h)&&h.length)o.nmH=h}catch(e){}return o};
+/* render wrapper */
+function render(){render0();schRender();binRender();const{st}=view(),c={over:0,today:0,week:0,none:0};st.forEach(s=>{const k=nmCat(s);if(c[k]!==undefined)c[k]++});
+ $('kpi').insertAdjacentHTML('beforeend',[[c.over,'Mocks overdue'],[c.today,'Mocks today'],[c.week,'Mocks in next 7 days'],[c.none,'No mock scheduled']].map(k=>`<div><b>${k[0]}</b><span>${k[1]}</span></div>`).join(''));
+ if($('fs').value&&!$('prof').hidden){const s=S.students.find(x=>x.id===$('fs').value);if(s)$('prof').insertAdjacentHTML('beforeend',nmProf(s))}}
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 try{$('who').value=localStorage.getItem('cad_who')||''}catch(e){}
 $('who').oninput=()=>{try{localStorage.setItem('cad_who',$('who').value)}catch(e){}};
 $('lt').onchange=()=>document.querySelectorAll('.chf').forEach(e=>e.hidden=$('lt').value!=='c');
